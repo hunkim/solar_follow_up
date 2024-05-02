@@ -1,0 +1,8 @@
+requests 
+streamlit
+langchain
+langchain-upstage
+langchainhub
+google-cloud-firestore
+firebase-admin
+certifi
