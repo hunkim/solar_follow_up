@@ -4,3 +4,5 @@ langchain-upstage
 langchainhub
 google-cloud-firestore
 firebase-admin
+httpx-oauth
+git+https://github.com/hunkim/streamlit-google-oauth

@@ -1,5 +1,5 @@
 
-agents = [
+default_agents = [
     {
         "name": "SUMMARY",
         "instruction": "Summarize the given context in a polite manner",

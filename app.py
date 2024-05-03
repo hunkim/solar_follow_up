@@ -5,19 +5,24 @@ from langchain_upstage import ChatUpstage as Chat
 from langchain_upstage import GroundednessCheck
 
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.messages import AIMessage, HumanMessage
 from langchain_upstage import UpstageLayoutAnalysisLoader
 from langchain_core.prompts import PromptTemplate
 
-import tempfile, os
+import tempfile, os, json
 
-from vote import thumbs_up, thumbs_down
-from agents import agents
+from vote import thumbs_up, thumbs_down, get_agents, set_agents
+from agents import default_agents
+
+import streamlit_google_oauth as oauth
+
 
 llm = Chat()
 groundedness_check = GroundednessCheck()
 
 agent_results = {}
+
+if "agents" not in st.session_state:
+    st.session_state.agents = default_agents
 
 
 def get_agent_response(agent, context):
@@ -59,7 +64,7 @@ def GC_response(agent, context, response):
 
 
 def run_follow_up():
-    for agent in agents:
+    for agent in st.session_state.agents:
         with st.status(f"Running {agent['name']} agent ...", expanded=True):
             place = st.empty()
             place_info = st.empty()
@@ -77,6 +82,43 @@ def run_follow_up():
 if __name__ == "__main__":
     st.title("Follow Up")
     st.write("This app is designed to help you follow up on your documents.")
+
+    client_id = st.secrets["GOOGLE_CLIENT_ID"]
+    client_secret = st.secrets["GOOGLE_CLIENT_SECRET"]
+    redirect_uri = st.secrets["GOOGLE_REDIRECT_URI"]
+
+    login_info = oauth.login(
+        client_id=client_id,
+        client_secret=client_secret,
+        redirect_uri=redirect_uri,
+        app_name="Login to configure agent",
+        logout_button_text="Logout",
+    )
+    if login_info:
+        user_id, user_email = login_info
+        with st.expander(f"Configure the agent for {user_email}"):
+            st.session_state.agents = get_agents(user_email)
+            if not st.session_state.agents:
+                st.session_state.agents = default_agents
+
+            agent_text = st.text_area(
+                "Add your agent in the JSON format: {name, instruction, additional_context}",
+                value=json.dumps(st.session_state.agents, indent=2),
+                height=500,
+            )
+
+            col1, col2, col3 = st.columns([1, 1, 5])
+            with col1:
+                if st.button("Save"):
+                    try:
+                        my_agents = json.loads(agent_text)
+                        set_agents(user_email, json.loads(agent_text))
+                    except:
+                        st.error("Invalid JSON format!")
+            with col2:
+                if st.button("Reset"):
+                    st.session_state.agents = default_agents
+                    set_agents(user_email, default_agents)
 
     with st.sidebar:
         st.header(f"Add your conext such as text email or screenshots!")

@@ -8,7 +8,7 @@ $(VENV)/bin/activate: requirements.txt
 	$(PIP) install -r requirements.txt
 
 app: $(VENV)/bin/activate
-	$(STREAMLIT) run app.py --server.port 7004
+	$(STREAMLIT) run app.py --server.port 8080
 
 vote: $(VENV)/bin/activate
 	$(PYTHON) vote.py

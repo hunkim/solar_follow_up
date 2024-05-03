@@ -57,6 +57,38 @@ def get_votes(id=ID):
     return doc.to_dict()
 
 
+def set_agents(user_email, agents):
+    # Create a new document in Firestore
+    doc_ref = db.collection("articles").document(user_email)
+    doc_ref.set(
+        {
+            "user_email": user_email,
+            "agents": agents,
+            "timestamp": firestore.SERVER_TIMESTAMP,
+        }
+    )
+
+
+def get_agents(user_email, default=None):
+    # Get the document reference
+    doc_ref = db.collection("articles").document(user_email)
+    doc = doc_ref.get()
+
+    # check if the document exists
+    if not doc.exists:
+        return default
+
+    # check if the user_email field exists
+    if (
+        "user_email" in doc.to_dict()
+        and doc.get("user_email") == user_email
+        and "agents" in doc.to_dict()
+    ):
+        return doc.get("agents")
+
+    return default
+
+
 if __name__ == "__main__":
     # test to add a new article
     thumbs_up()
